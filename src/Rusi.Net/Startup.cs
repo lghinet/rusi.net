@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NBB.Core.Pipeline;
 using NBB.Messaging.Abstractions;
+using NBB.Messaging.InProcessMessaging.Internal;
 using Rusi.Net.Services;
 
 namespace Rusi.Net
@@ -29,8 +30,10 @@ namespace Rusi.Net
 
             services
                 .AddMessageBus()
-                .AddInProcessTransport();
-                //.AddNatsTransport(Configuration);
+                //.AddInProcessTransport();
+                .AddNatsTransport(Configuration);
+
+            //services.AddSingleton<IStorage, Storage>();
 
             var pb = new PipelineBuilder<MessagingContext>();
             pb.Use((context, token, next) =>

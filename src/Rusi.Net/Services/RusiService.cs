@@ -20,7 +20,7 @@ namespace Rusi.Net.Services
         private readonly PipelineDelegate<MessagingContext> _pipeline;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public RusiService(ILogger<RusiService> logger, IMessageBus messageBus, 
+        public RusiService(ILogger<RusiService> logger, IMessageBus messageBus,
             PipelineDelegate<MessagingContext> pipeline, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
@@ -55,9 +55,9 @@ namespace Rusi.Net.Services
             ServerCallContext context)
         {
 
-            _logger.LogDebug("Subscribing to topic "+request.Topic);
+            _logger.LogDebug("Subscribing to topic " + request.Topic);
 
-            await _messageBus.SubscribeAsync<PayloadWrapper>(async envelope =>
+            using (await _messageBus.SubscribeAsync<PayloadWrapper>(async envelope =>
                 {
                     _logger.LogDebug("Received message");
 
@@ -83,9 +83,10 @@ namespace Rusi.Net.Services
                 {
                     TopicName = request.Topic
 
-                }, context.CancellationToken);
-
-            await context.CancellationToken.WhenCanceled();
+                }, context.CancellationToken))
+            {
+                await context.CancellationToken.WhenCanceled();
+            }
         }
 
         class PayloadWrapper
