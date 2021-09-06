@@ -83,9 +83,10 @@ namespace Rusi.Net.Services
                 {
                     TopicName = request.Topic,
 
-                }, context.CancellationToken);
-
-            await context.CancellationToken.WhenCanceled();
+                }, context.CancellationToken))
+            {
+                await context.CancellationToken.WhenCanceled();
+            }
         }
 
         class PayloadWrapper
