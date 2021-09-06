@@ -29,8 +29,8 @@ namespace Rusi.Net
 
             services
                 .AddMessageBus()
-                .AddInProcessTransport();
-                //.AddNatsTransport(Configuration);
+                //.AddInProcessTransport();
+                .AddNatsTransport(Configuration);
 
             var pb = new PipelineBuilder<MessagingContext>();
             pb.Use((context, token, next) =>

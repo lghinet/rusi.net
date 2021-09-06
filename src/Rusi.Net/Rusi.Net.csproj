@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.39.0" />
     <PackageReference Include="Jaeger" Version="1.0.3" />
+    <PackageReference Include="NATS.Client" Version="0.12.0" />
     <PackageReference Include="NBB.Messaging.InProcessMessaging" Version="5.2.7" />
     <PackageReference Include="NBB.Messaging.Nats" Version="$(NBB)" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.1.0" />
