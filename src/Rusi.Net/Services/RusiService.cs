@@ -1,15 +1,13 @@
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
-using NBB.Messaging.Abstractions;
-using Proto.V1;
-using System;
-using System.Data;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NBB.Core.Abstractions;
 using NBB.Core.Pipeline;
+using NBB.Messaging.Abstractions;
+using Proto.V1;
+using System.Threading.Tasks;
 
 namespace Rusi.Net.Services
 {
@@ -83,10 +81,8 @@ namespace Rusi.Net.Services
                 {
                     TopicName = request.Topic,
 
-                }, context.CancellationToken))
-            {
-                await context.CancellationToken.WhenCanceled();
-            }
+                }, context.CancellationToken);
+            await context.CancellationToken.WhenCanceled();
         }
 
         class PayloadWrapper

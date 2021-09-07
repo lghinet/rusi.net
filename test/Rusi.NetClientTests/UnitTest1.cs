@@ -1,14 +1,13 @@
+using FluentAssertions;
+using Google.Protobuf;
+using Grpc.Core;
+using Grpc.Net.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Google.Protobuf;
-using Grpc.Core;
-using Grpc.Net.Client;
-using Microsoft.Extensions.DependencyInjection;
-using Proto.Runtime.V1;
+using Proto.V1;
 using Xunit;
 
 namespace Rusi.NetClientTests
@@ -19,7 +18,7 @@ namespace Rusi.NetClientTests
         public async Task Test1()
         {
             using var channel = GrpcChannel.ForAddress("http://localhost:50003");
-            var client = new Proto.Runtime.V1.Rusi.RusiClient(channel);
+            var client = new Proto.V1.Rusi.RusiClient(channel);
             var cts = new CancellationTokenSource();
 
 

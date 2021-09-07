@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\rusi.proto" GrpcServices="Client" />
+    <Protobuf Include="../../protos/rusi.proto" Link="Protos\rusi.proto" GrpcServices="Client" />
   </ItemGroup>
 
 
