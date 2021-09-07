@@ -75,11 +75,10 @@ namespace WebApplication1
 
             services.AddOpenTracingCoreServices(builder => builder
                 .AddAspNetCore()
-                //.AddEntityFrameworkCore()
                 .AddGenericDiagnostics()
-                .AddHttpHandler()
+                //.AddHttpHandler()
                 .AddLoggerProvider()
-                .ConfigureGenericDiagnostics(options => options.IgnoredListenerNames.Add("SqlClientDiagnosticListener")));
+                );
 
 
 
