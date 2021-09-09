@@ -74,12 +74,11 @@ namespace WebApplication1
             });
 
             services.AddOpenTracingCoreServices(builder => builder
-                .AddAspNetCore()
-                .AddGenericDiagnostics()
+                //.AddAspNetCore(x=>x.Hosting.)
+                //.AddGenericDiagnostics(x => x.IgnoredListenerNames.Add("Grpc.Net.Client"))
                 //.AddHttpHandler()
                 .AddLoggerProvider()
-                );
-
+            );
 
 
             services.AddSingleton<ITracer>(serviceProvider =>
@@ -103,18 +102,13 @@ namespace WebApplication1
                     .WithLoggerFactory(loggerFactory)
                     .WithSampler(new ConstSampler(true))
                     .WithReporter(new RemoteReporter.Builder()
-                        .WithSender(new UdpSender(
-                            Configuration.GetValue<string>("OpenTracing:Jeager:AgentHost"),
-                            Configuration.GetValue<int>("OpenTracing:Jeager:AgentPort"), 0))
+                        .WithSender(new HttpSender("http://kube-worker1.totalsoft.local:31034/api/traces"))
                         .Build())
                     .Build();
 
 
 
                 GlobalTracer.Register(tracer);
-
-
-
                 return tracer;
             });
         }
@@ -130,7 +124,7 @@ namespace WebApplication1
             }
 
             app.UseHttpsRedirection();
- 
+
             app.UseRouting();
 
             app.UseAuthorization();

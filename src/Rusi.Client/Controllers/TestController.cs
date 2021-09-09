@@ -9,6 +9,7 @@ using OpenTracing.Propagation;
 using Proto.V1;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Google.Protobuf.Collections;
 
 namespace WebApplication1.Controllers
 {
@@ -39,31 +40,26 @@ namespace WebApplication1.Controllers
         public async Task<string[]> Get()
         {
             var cmd = new OrderCreated(1232, Summaries);
+            var publishRequest = new PublishRequest()
+            {
+                Data = ByteString.CopyFromUtf8(JsonConvert.SerializeObject(cmd)),
+                PubsubName = "natsstreaming-pubsub",
+                Topic = "TS1858.dapr_test_topic",
+                Metadata = { { "test-2", "test-2" } }
+            };
 
             using var scope = _tracer.BuildSpan("client publish operation")
                 .WithTag(OpenTracing.Tag.Tags.Component, "client publisher")
                 .WithTag(OpenTracing.Tag.Tags.SpanKind, OpenTracing.Tag.Tags.SpanKindProducer)
                 .StartActive(true);
 
-            
-            var grpcMetadata = new Metadata();
             if (_tracer.ActiveSpan != null)
             {
-                var metadata = new Dictionary<string, string>();
-                _tracer.Inject(_tracer.ActiveSpan.Context, BuiltinFormats.TextMap, new TextMapInjectAdapter(metadata));
-                foreach (var entry in metadata)
-                {
-                    grpcMetadata.Add(entry.Key, entry.Value);
-                }
+                _tracer.Inject(_tracer.ActiveSpan.Context, BuiltinFormats.TextMap,
+                    new TextMapInjectAdapter(publishRequest.Metadata));
             }
 
-            await _client.PublishAsync(new PublishRequest()
-            {
-                Data = ByteString.CopyFromUtf8(JsonConvert.SerializeObject(cmd)),
-                PubsubName = "natsstreaming-pubsub",
-                Topic = "TS1858.dapr_test_topic",
-                Metadata = { { "test-2", "test-2" } }
-            }, options: new CallOptions(grpcMetadata));
+            await _client.PublishAsync(publishRequest);
 
 
 
