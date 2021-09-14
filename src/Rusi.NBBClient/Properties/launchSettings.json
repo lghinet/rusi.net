@@ -1,6 +1,6 @@
 ﻿{
   "profiles": {
-    "Rusi.Client": {
+    "Rusi.NBBClient": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,
