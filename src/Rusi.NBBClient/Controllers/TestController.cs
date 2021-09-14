@@ -51,10 +51,7 @@ namespace Rusi.NBBClient.Controllers
             //}
 
 
-            await _busPublisher.PublishAsync(cmd, new MessagingPublisherOptions()
-            {
-                TopicName = "dapr_test_topic"
-            }, HttpContext.RequestAborted);
+            await _busPublisher.PublishAsync(cmd, HttpContext.RequestAborted);
 
             return Summaries;
         }

@@ -8,7 +8,7 @@ using MediatR;
 namespace Rusi.NBBClient
 {
 
-    public record CreateOrder(int OrderId, string[] Summaries) : IRequest<Unit>;
+    public record CreateOrder(int OrderId, string[] Summaries) : IRequest;
 
     public class CreateOrderHandler : IRequestHandler<CreateOrder>
     {

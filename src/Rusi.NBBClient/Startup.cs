@@ -18,7 +18,9 @@ using Proto.V1;
 using System;
 using System.Reflection;
 using MediatR;
+using NBB.Messaging.Abstractions;
 using NBB.Messaging.Host;
+using NBB.Messaging.OpenTracing.Publisher;
 using NBB.Messaging.OpenTracing.Subscriber;
 
 namespace Rusi.NBBClient
@@ -46,6 +48,8 @@ namespace Rusi.NBBClient
             services
                 .AddRusiMessageBus(Configuration);
 
+            services.Decorate<IMessageBusPublisher, OpenTracingPublisherDecorator>();
+
             services.AddMessagingHost(hostBuilder => hostBuilder
                 .Configure(hostConfig =>
                 {
@@ -64,7 +68,7 @@ namespace Rusi.NBBClient
                 })
             );
 
-         
+
             services.AddOpenTracingCoreServices(builder => builder
                 //.AddAspNetCore(x=>x.Hosting.)
                 //.AddGenericDiagnostics(x => x.IgnoredListenerNames.Add("Grpc.Net.Client"))
