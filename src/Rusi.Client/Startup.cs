@@ -40,8 +40,8 @@ namespace WebApplication1
             });
 
             services
-                .AddMessageBus()
-                .AddNatsTransport(Configuration);
+                .AddMessageBus();
+                //.AddNatsTransport(Configuration);
 
             services.AddHostedService<Worker>();
 
