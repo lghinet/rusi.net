@@ -39,13 +39,8 @@ namespace WebApplication1
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApplication1", Version = "v1" });
             });
 
-            services
-                .AddMessageBus();
-                //.AddNatsTransport(Configuration);
 
             services.AddHostedService<Worker>();
-
-
             services.AddGrpcClient<Rusi.RusiClient>(o =>
             {
                 o.Address = new Uri("http://localhost:50003");
@@ -72,7 +67,6 @@ namespace WebApplication1
                     };
                 });
             });
-
             services.AddOpenTracingCoreServices(builder => builder
                 //.AddAspNetCore(x=>x.Hosting.)
                 //.AddGenericDiagnostics(x => x.IgnoredListenerNames.Add("Grpc.Net.Client"))

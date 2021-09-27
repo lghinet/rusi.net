@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,26 +35,43 @@ namespace WebApplication1
             });
 
             //var gg = subscription.GetStatus();
-
-            await foreach (var ss in subscription.ResponseStream.ReadAllAsync(stoppingToken))
+            try
             {
-                var metadata = subscription.ResponseStream.Current.Metadata;
+                await foreach (var ss in subscription.ResponseStream.ReadAllAsync(stoppingToken))
+                {
+                    using var scope = CreateSpan(ss.Metadata);
 
-                var extractedSpanContext = _tracer.Extract(BuiltinFormats.TextMap,
-                    new TextMapExtractAdapter(metadata));
+                    _logger.LogInformation(ss.Data.ToStringUtf8());
 
-                using var scope = _tracer.BuildSpan("client receive operation")
-                    .AddReference(References.FollowsFrom, extractedSpanContext)
-                    .WithTag(OpenTracing.Tag.Tags.Component, "client receive")
-                    .WithTag(OpenTracing.Tag.Tags.SpanKind, OpenTracing.Tag.Tags.SpanKindConsumer)
-                    .StartActive(true);
+                    // Simulate work
+                    await Task.Delay(TimeSpan.FromSeconds(0.5));
+                }
 
-                _logger.LogInformation(ss.Data.ToStringUtf8());
+            }
+            catch (RpcException rpc) when (rpc.StatusCode == StatusCode.Unavailable)
+            {
+                //reconnect stream
+                Console.WriteLine(rpc);
 
-                // Simulate work
-                await Task.Delay(TimeSpan.FromSeconds(0.5));
             }
 
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        private IScope CreateSpan(IDictionary<string, string> metadata)
+        {
+            var extractedSpanContext =
+                _tracer.Extract(BuiltinFormats.TextMap, new TextMapExtractAdapter(metadata));
+
+            return _tracer.BuildSpan("client receive operation")
+                .AddReference(References.FollowsFrom, extractedSpanContext)
+                .WithTag(OpenTracing.Tag.Tags.Component, "client receive")
+                .WithTag(OpenTracing.Tag.Tags.SpanKind, OpenTracing.Tag.Tags.SpanKindConsumer)
+                .StartActive(true);
         }
     }
 }

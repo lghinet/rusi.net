@@ -23,15 +23,12 @@ namespace WebApplication1.Controllers
         };
 
         private readonly ILogger<TestController> _logger;
-        private readonly IMessageBusPublisher _busPublisher;
         private readonly Rusi.RusiClient _client;
         private readonly ITracer _tracer;
 
-        public TestController(ILogger<TestController> logger, IMessageBusPublisher busPublisher,
-            Rusi.RusiClient client, ITracer tracer)
+        public TestController(ILogger<TestController> logger, Rusi.RusiClient client, ITracer tracer)
         {
             _logger = logger;
-            _busPublisher = busPublisher;
             _client = client;
             _tracer = tracer;
         }

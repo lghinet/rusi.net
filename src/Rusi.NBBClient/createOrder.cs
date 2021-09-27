@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Rusi.NBBClient
 {
@@ -12,10 +13,18 @@ namespace Rusi.NBBClient
 
     public class CreateOrderHandler : IRequestHandler<CreateOrder>
     {
-        public Task<Unit> Handle(CreateOrder request, CancellationToken cancellationToken)
+        private readonly ILogger<CreateOrderHandler> _logger;
+
+        public CreateOrderHandler(ILogger<CreateOrderHandler> logger)
         {
-            return Unit.Task;
+            _logger = logger;
         }
-       
+
+        public async Task<Unit> Handle(CreateOrder request, CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            _logger.LogInformation("new order request" + request.OrderId);
+            return Unit.Value;
+        }
     }
 }
