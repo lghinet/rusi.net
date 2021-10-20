@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Hosting;
@@ -28,37 +29,80 @@ namespace WebApplication1
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            using var subscription = _client.Subscribe(new SubscribeRequest()
+            while (true)
             {
-                PubsubName = "natsstreaming-pubsub",
-                Topic = "TS1858.dapr_test_topic"
-            });
-
-            //var gg = subscription.GetStatus();
-            try
-            {
-                await foreach (var ss in subscription.ResponseStream.ReadAllAsync(stoppingToken))
+                try
                 {
-                    using var scope = CreateSpan(ss.Metadata);
+                    // will never be sent to the client.
+                    var channel = Channel.CreateUnbounded<AckRequest>(new UnboundedChannelOptions()
+                    {
+                        SingleReader = true,
+                        SingleWriter = false,
+                    });
 
-                    _logger.LogInformation(ss.Data.ToStringUtf8());
+                    using var subscription = _client.Subscribe();
+                    await subscription.RequestStream.WriteAsync(
+                        new SubscribeRequest()
+                        {
+                            SubscriptionRequest = new SubscriptionRequest()
+                            {
+                                PubsubName = "natsstreaming-pubsub",
+                                Topic = "TS1858.dapr_test_topic",
+                                //Options = new SubscriptionOptions(){DeliverNewMessagesOnly = false}
+                            }
+                        });
 
-                    // Simulate work
-                    await Task.Delay(TimeSpan.FromSeconds(0.5));
+                    _ = Task.Run(async () =>
+                    {
+                        while (await channel.Reader.WaitToReadAsync(stoppingToken))
+                        {
+                            if (channel.Reader.TryRead(out var ack))
+                            {
+                                await subscription?.RequestStream.WriteAsync(new SubscribeRequest()
+                                {
+                                    AckRequest = ack
+                                });
+                            }
+                        }
+                    }, stoppingToken);
+
+                    await foreach (var ss in subscription.ResponseStream.ReadAllAsync(stoppingToken))
+                    {
+                        using var scope = CreateSpan(ss.Metadata);
+
+                        _logger.LogInformation(ss.Data.ToStringUtf8());
+
+                        // Simulate work
+                        _ = Task.Delay(TimeSpan.FromSeconds(3), stoppingToken)
+                            .ContinueWith(task =>
+                            {
+                                var ack = new AckRequest()
+                                {
+                                    MessageId = ss.Id,
+                                };
+
+                             
+                                //TODO check if subscription was disposed 
+                                if (!channel.Writer.TryWrite(ack))
+                                {
+                                    throw new InvalidOperationException("Unable to queue ack.");
+                                }
+
+                            }, stoppingToken);
+                    }
+
+                }
+                catch (RpcException rpc)
+                {
+                    //reconnect stream
+                    Console.WriteLine(rpc);
                 }
 
-            }
-            catch (RpcException rpc) when (rpc.StatusCode == StatusCode.Unavailable)
-            {
-                //reconnect stream
-                Console.WriteLine(rpc);
-
-            }
-
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
             }
         }
 

@@ -73,8 +73,7 @@ namespace WebApplication1
                 //.AddHttpHandler()
                 .AddLoggerProvider()
             );
-
-
+            
             services.AddSingleton<ITracer>(serviceProvider =>
             {
                 if (!Configuration.GetValue<bool>("OpenTracing:Jeager:IsEnabled"))

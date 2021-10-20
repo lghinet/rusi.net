@@ -1,15 +1,12 @@
 ﻿using Google.Protobuf;
-using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NBB.Messaging.Abstractions;
 using Newtonsoft.Json;
 using OpenTracing;
 using OpenTracing.Propagation;
 using Proto.V1;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Google.Protobuf.Collections;
 
 namespace WebApplication1.Controllers
 {
@@ -17,11 +14,6 @@ namespace WebApplication1.Controllers
     [Route("[controller]")]
     public class TestController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
         private readonly ILogger<TestController> _logger;
         private readonly Rusi.RusiClient _client;
         private readonly ITracer _tracer;
@@ -34,9 +26,9 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
-        public async Task<string[]> Get()
+        public async Task<OrderCreated> Get()
         {
-            var cmd = new OrderCreated(1232, Summaries);
+            var cmd = new OrderCreated(1);
             var publishRequest = new PublishRequest()
             {
                 Data = ByteString.CopyFromUtf8(JsonConvert.SerializeObject(cmd)),
@@ -58,6 +50,15 @@ namespace WebApplication1.Controllers
 
             await _client.PublishAsync(publishRequest);
 
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":2}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":3}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":4}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":5}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":6}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":7}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":8}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":9}") });
+            await _client.PublishAsync(new PublishRequest(publishRequest) { Data = ByteString.CopyFromUtf8("{\"OrderId\":10}") });
 
 
             //await _busPublisher.PublishAsync(new OrderCreated(1232, Summaries), new MessagingPublisherOptions()
@@ -65,9 +66,9 @@ namespace WebApplication1.Controllers
             //    TopicName = "dapr_test_topic"
             //}, HttpContext.RequestAborted);
 
-            return Summaries;
+            return cmd;
         }
 
-        public record OrderCreated(int OrderId, string[] Summaries);
+        public record OrderCreated(int OrderId);
     }
 }
