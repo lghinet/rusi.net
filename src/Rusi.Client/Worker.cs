@@ -1,16 +1,16 @@
+using Grpc.Core;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using Proto.V1;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Grpc.Core;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using OpenTracing;
-using OpenTracing.Propagation;
-using Proto.V1;
 
 namespace WebApplication1
 {
@@ -18,13 +18,14 @@ namespace WebApplication1
     {
         private readonly ILogger<Worker> _logger;
         private readonly Rusi.RusiClient _client;
-        private readonly ITracer _tracer;
 
-        public Worker(ILogger<Worker> logger, Rusi.RusiClient client, ITracer tracer)
+        private static readonly ActivitySource ActivitySource = new ("MessageReceiver");
+        private static readonly TextMapPropagator Propagator = new JaegerPropagator();
+
+        public Worker(ILogger<Worker> logger, Rusi.RusiClient client)
         {
             _logger = logger;
             _client = client;
-            _tracer = tracer;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -68,7 +69,11 @@ namespace WebApplication1
 
                     await foreach (var ss in subscription.ResponseStream.ReadAllAsync(stoppingToken))
                     {
-                        using var scope = CreateSpan(ss.Metadata);
+                        using var activity = StartActivity(ss.Metadata);
+
+                        activity?.SetTag("Message received", ss.Data);
+                        activity?.SetTag("Message metadata", ss.Metadata);
+                        activity?.SetTag("Message id", ss.Id);
 
                         _logger.LogInformation(ss.Data.ToStringUtf8());
 
@@ -81,7 +86,7 @@ namespace WebApplication1
                                     MessageId = ss.Id,
                                 };
 
-                             
+
                                 //TODO check if subscription was disposed 
                                 if (!channel.Writer.TryWrite(ack))
                                 {
@@ -90,7 +95,6 @@ namespace WebApplication1
 
                             }, stoppingToken);
                     }
-
                 }
                 catch (RpcException rpc)
                 {
@@ -106,16 +110,30 @@ namespace WebApplication1
             }
         }
 
-        private IScope CreateSpan(IDictionary<string, string> metadata)
+        private Activity StartActivity(IDictionary<string, string> metadata)
         {
-            var extractedSpanContext =
-                _tracer.Extract(BuiltinFormats.TextMap, new TextMapExtractAdapter(metadata));
+            // Extract the PropagationContext of the upstream parent from the message headers.
+            var parentContext = Propagator.Extract(default, metadata, ExtractTraceContextFromBasicProperties);
+            Baggage.Current = parentContext.Baggage;
 
-            return _tracer.BuildSpan("client receive operation")
-                .AddReference(References.FollowsFrom, extractedSpanContext)
-                .WithTag(OpenTracing.Tag.Tags.Component, "client receive")
-                .WithTag(OpenTracing.Tag.Tags.SpanKind, OpenTracing.Tag.Tags.SpanKindConsumer)
-                .StartActive(true);
+            return ActivitySource.StartActivity("client receive operation", ActivityKind.Consumer, parentContext.ActivityContext);
+        }
+
+        private IEnumerable<string> ExtractTraceContextFromBasicProperties(IDictionary<string, string> props, string key)
+        {
+            try
+            {
+                if (props.TryGetValue(key, out var value))
+                {
+                    return new[] { value };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to extract trace context");
+            }
+
+            return Enumerable.Empty<string>();
         }
     }
 }

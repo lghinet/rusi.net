@@ -1,22 +1,16 @@
 using Grpc.Core;
 using Grpc.Net.Client.Configuration;
-using Jaeger;
-using Jaeger.Reporters;
-using Jaeger.Samplers;
-using Jaeger.Senders.Thrift;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using OpenTracing;
-using OpenTracing.Noop;
-using OpenTracing.Util;
-using Proto.V1;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using System;
-using System.Reflection;
+using OpenTelemetry.Resources;
+using Proto.V1;
 
 namespace WebApplication1
 {
@@ -60,50 +54,33 @@ namespace WebApplication1
                                     InitialBackoff = TimeSpan.FromSeconds(10),
                                     MaxBackoff = TimeSpan.FromMinutes(30),
                                     BackoffMultiplier = 1.5,
-                                    RetryableStatusCodes = { StatusCode.Unavailable, StatusCode.Aborted }
+                                    RetryableStatusCodes = { Grpc.Core.StatusCode.Unavailable, Grpc.Core.StatusCode.Aborted }
                                 }
                             }
                         }
                     };
                 });
             });
-            services.AddOpenTracingCoreServices(builder => builder
-                //.AddAspNetCore(x=>x.Hosting.)
-                //.AddGenericDiagnostics(x => x.IgnoredListenerNames.Add("Grpc.Net.Client"))
-                //.AddHttpHandler()
-                .AddLoggerProvider()
-            );
-            
-            services.AddSingleton<ITracer>(serviceProvider =>
-            {
-                if (!Configuration.GetValue<bool>("OpenTracing:Jeager:IsEnabled"))
+
+            services.AddOpenTelemetryTracing(builder => builder
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Rusi.Client"))
+                //.AddGrpcClientInstrumentation()
+                .AddAspNetCoreInstrumentation()
+                .AddSource("MessageSender")
+                .AddSource("MessageReceiver")
+                //.AddZipkinExporter(b =>
+                //{
+                //    b.Endpoint = new Uri($"http://kube-worker1.totalsoft.local31578/api/v2/spans");
+                //}));
+                .AddJaegerExporter(jaegerOptions =>
                 {
-                    return NoopTracerFactory.Create();
-                }
+                    //no collector support http://kube-worker1.totalsoft.local:31034/api/traces
+                    jaegerOptions.AgentHost = "kube-worker1.totalsoft.local";
+                    jaegerOptions.AgentPort = 31700;
+                }));
 
 
-
-                string serviceName = Assembly.GetEntryAssembly().GetName().Name;
-
-
-
-                ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-
-
-                ITracer tracer = new Tracer.Builder(serviceName)
-                    .WithLoggerFactory(loggerFactory)
-                    .WithSampler(new ConstSampler(true))
-                    .WithReporter(new RemoteReporter.Builder()
-                        .WithSender(new HttpSender("http://kube-worker1.totalsoft.local:31034/api/traces"))
-                        .Build())
-                    .Build();
-
-
-
-                GlobalTracer.Register(tracer);
-                return tracer;
-            });
+            services.AddOpenTelemetryMetrics(builder => { builder.AddPrometheusExporter(); });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -121,6 +98,8 @@ namespace WebApplication1
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
