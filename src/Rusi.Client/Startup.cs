@@ -54,7 +54,8 @@ namespace WebApplication1
                                     InitialBackoff = TimeSpan.FromSeconds(10),
                                     MaxBackoff = TimeSpan.FromMinutes(30),
                                     BackoffMultiplier = 1.5,
-                                    RetryableStatusCodes = { Grpc.Core.StatusCode.Unavailable, Grpc.Core.StatusCode.Aborted }
+                                    RetryableStatusCodes =
+                                        { Grpc.Core.StatusCode.Unavailable, Grpc.Core.StatusCode.Aborted }
                                 }
                             }
                         }
@@ -70,7 +71,7 @@ namespace WebApplication1
                 .AddSource("MessageReceiver")
                 //.AddZipkinExporter(b =>
                 //{
-                //    b.Endpoint = new Uri($"http://kube-worker1.totalsoft.local31578/api/v2/spans");
+                //    b.Endpoint = new Uri($"http://kube-worker1.totalsoft.local:31332/api/v2/spans");
                 //}));
                 .AddJaegerExporter(jaegerOptions =>
                 {
@@ -80,7 +81,12 @@ namespace WebApplication1
                 }));
 
 
-            services.AddOpenTelemetryMetrics(builder => { builder.AddPrometheusExporter(); });
+            services.AddOpenTelemetryMetrics(builder =>
+            {
+                builder
+                    .AddPrometheusExporter()
+                    .AddAspNetCoreInstrumentation();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
