@@ -22,14 +22,19 @@ namespace Rusi.NetClientTests
             var cts = new CancellationTokenSource();
 
 
-            var subscriptions = new Dictionary<int, AsyncServerStreamingCall<ReceivedMessage>>();
+            var subscriptions = new Dictionary<int, AsyncDuplexStreamingCall<SubscribeRequest, ReceivedMessage>>();
             for (int i = 0; i < 100; i++)
             {
-                var subscription = client.Subscribe(new SubscribeRequest()
+                var subscription = client.Subscribe();
+                var sr = new SubscribeRequest()
                 {
-                    PubsubName = "natsstreaming-pubsub",
-                    Topic = "test_topic_" + i
-                });
+                    SubscriptionRequest = new SubscriptionRequest()
+                    {
+                        PubsubName = "natsstreaming-pubsub",
+                        Topic = "test_topic_" + i
+                    }
+                };
+                await subscription.RequestStream.WriteAsync(sr);
                 subscriptions.Add(i, subscription);
             }
 
@@ -48,9 +53,9 @@ namespace Rusi.NetClientTests
 
                     result.Count.Should().Be(3);
 
-                        //$"test_topic_{x.Key}_result_1",
-                        //$"test_topic_{x.Key}_result_2"
-                        //, $"test_topic_{x.Key}_result_3");
+                    //$"test_topic_{x.Key}_result_1",
+                    //$"test_topic_{x.Key}_result_2"
+                    //, $"test_topic_{x.Key}_result_3");
 
                 });
 
