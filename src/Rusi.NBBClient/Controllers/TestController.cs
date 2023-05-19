@@ -1,15 +1,7 @@
-﻿using Google.Protobuf;
-using Grpc.Core;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NBB.Messaging.Abstractions;
-using Newtonsoft.Json;
-using OpenTracing;
-using OpenTracing.Propagation;
-using Proto.V1;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Google.Protobuf.Collections;
 
 namespace Rusi.NBBClient.Controllers
 {
@@ -24,13 +16,11 @@ namespace Rusi.NBBClient.Controllers
 
         private readonly ILogger<TestController> _logger;
         private readonly IMessageBusPublisher _busPublisher;
-        private readonly ITracer _tracer;
 
-        public TestController(ILogger<TestController> logger, IMessageBusPublisher busPublisher, ITracer tracer)
+        public TestController(ILogger<TestController> logger, IMessageBusPublisher busPublisher)
         {
             _logger = logger;
             _busPublisher = busPublisher;
-            _tracer = tracer;
         }
 
         [HttpGet]

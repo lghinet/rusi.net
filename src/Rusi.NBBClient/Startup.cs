@@ -1,27 +1,12 @@
-using Grpc.Core;
-using Grpc.Net.Client.Configuration;
-using Jaeger;
-using Jaeger.Reporters;
-using Jaeger.Samplers;
-using Jaeger.Senders.Thrift;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using OpenTracing;
-using OpenTracing.Noop;
-using OpenTracing.Util;
-using Proto.V1;
-using System;
-using System.Reflection;
-using MediatR;
-using NBB.Messaging.Abstractions;
 using NBB.Messaging.Host;
-using NBB.Messaging.OpenTracing.Publisher;
-using NBB.Messaging.OpenTracing.Subscriber;
+using System.Reflection;
 
 namespace Rusi.NBBClient
 {
@@ -46,11 +31,10 @@ namespace Rusi.NBBClient
 
             services.AddMediatR(Assembly.GetEntryAssembly());
             services
-                .AddRusiMessageBus(Configuration);
+                .AddMessageBus()
+                .AddRusiTransport(Configuration);
 
-            services.Decorate<IMessageBusPublisher, OpenTracingPublisherDecorator>();
-
-            services.AddMessagingHost(hostBuilder => hostBuilder
+            services.AddMessagingHost(Configuration, hostBuilder => hostBuilder
                 .Configure(hostConfig =>
                 {
                     hostConfig
@@ -61,48 +45,12 @@ namespace Rusi.NBBClient
                         .UsePipeline(pipelineBuilder => pipelineBuilder
                             .UseCorrelationMiddleware()
                             .UseExceptionHandlingMiddleware()
-                            .UseMiddleware<OpenTracingMiddleware>()
                             // .UseMiddleware<HandleExecutionErrorMiddleware>()
                             .UseDefaultResiliencyMiddleware()
                             .UseMediatRMiddleware());
                 })
             );
-
-
-            services.AddOpenTracingCoreServices(builder => builder
-                //.AddAspNetCore(x=>x.Hosting.)
-                //.AddGenericDiagnostics(x => x.IgnoredListenerNames.Add("Grpc.Net.Client"))
-                //.AddHttpHandler()
-                .AddLoggerProvider()
-            );
-
-
-            services.AddSingleton<ITracer>(serviceProvider =>
-            {
-                if (!Configuration.GetValue<bool>("OpenTracing:Jeager:IsEnabled"))
-                {
-                    return NoopTracerFactory.Create();
-                }
-
-
-
-                string serviceName = Assembly.GetEntryAssembly().GetName().Name;
-
-                ILoggerFactory loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-                ITracer tracer = new Tracer.Builder(serviceName)
-                    .WithLoggerFactory(loggerFactory)
-                    .WithSampler(new ConstSampler(true))
-                    .WithReporter(new RemoteReporter.Builder()
-                        .WithSender(new HttpSender("http://kube-worker1.totalsoft.local:31034/api/traces"))
-                        .Build())
-                    .Build();
-
-
-
-                GlobalTracer.Register(tracer);
-                return tracer;
-            });
+  
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
