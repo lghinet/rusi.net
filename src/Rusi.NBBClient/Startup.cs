@@ -32,7 +32,8 @@ namespace Rusi.NBBClient
             services.AddMediatR(Assembly.GetEntryAssembly());
             services
                 .AddMessageBus()
-                .AddRusiTransport(Configuration);
+                .AddRusiTransport(Configuration)
+                .UseTopicResolutionBackwardCompatibility(Configuration);
 
             services.AddMessagingHost(Configuration, hostBuilder => hostBuilder
                 .Configure(hostConfig =>
