@@ -1,17 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-		<PackageReference Include="Grpc.Net.ClientFactory" Version="2.53.0" />
+		<PackageReference Include="MediatR" Version="12.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Grpc.Net.ClientFactory" Version="2.59.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-		<PackageReference Include="NBB.Messaging.Rusi" Version="7.0.12" />
-		<PackageReference Include="NBB.Messaging.BackwardCompatibility" Version="7.0.12" />
-		<PackageReference Include="NBB.Messaging.Host" Version="7.0.12" />
+		<PackageReference Include="NBB.Messaging.Rusi" Version="$(NBB)" />
+		<PackageReference Include="NBB.Messaging.OpenTelemetry" Version="$(NBB)" />
+		<PackageReference Include="NBB.Messaging.BackwardCompatibility" Version="$(NBB)" />
+		<PackageReference Include="NBB.Messaging.Host" Version="$(NBB)" />
+
+
+
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(Otel)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OtelContribRuntime)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OtelInstrumentation)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="$(OtelInstrumentation)" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="$(OtelContribSqlClient)" />
+		<PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="$(OtelPrometheusAspNetCoreExporter)" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(Otel)" />
+		<PackageReference Include="OpenTelemetry.Extensions.Propagators" Version="$(Otel)" />
 	</ItemGroup>
 
 </Project>

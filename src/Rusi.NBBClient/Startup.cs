@@ -6,7 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using NBB.Messaging.Host;
+using OpenTelemetry.Resources;
+using OpenTelemetry;
+using System;
 using System.Reflection;
+using OpenTelemetry.Extensions.Propagators;
+using OpenTelemetry.Trace;
+using NBB.Messaging.OpenTelemetry;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
 
 namespace Rusi.NBBClient
 {
@@ -29,7 +37,7 @@ namespace Rusi.NBBClient
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApplication1", Version = "v1" });
             });
 
-            services.AddMediatR(Assembly.GetEntryAssembly());
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetEntryAssembly()));
             services
                 .AddMessageBus()
                 .AddRusiTransport(Configuration)
@@ -46,13 +54,48 @@ namespace Rusi.NBBClient
                         .UsePipeline(pipelineBuilder => pipelineBuilder
                             .UseCorrelationMiddleware()
                             .UseExceptionHandlingMiddleware()
-                            // .UseMiddleware<HandleExecutionErrorMiddleware>()
                             .UseDefaultResiliencyMiddleware()
                             .UseMediatRMiddleware());
                 })
             );
-  
+
+            AddOpenTelemetry(services, Configuration);
+
         }
+
+        public void AddOpenTelemetry(IServiceCollection services, IConfiguration configuration)
+        {
+            var assembly = Assembly.GetExecutingAssembly().GetName();
+
+            void configureResource(ResourceBuilder r) =>
+                r.AddService(assembly.Name, serviceVersion: assembly.Version?.ToString(), serviceInstanceId: Environment.MachineName);
+
+            if (configuration.GetValue<bool>("OpenTelemetry:TracingEnabled"))
+            {
+                Sdk.SetDefaultTextMapPropagator(new JaegerPropagator());
+
+                services.AddOpenTelemetry().WithTracing(builder =>
+                    builder
+                        .ConfigureResource(configureResource)
+                        .SetSampler(new AlwaysOnSampler())
+                        .AddMessageBusInstrumentation()
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation(options =>
+                        {
+                            options.RecordException = true;
+                            options.FilterHttpRequestMessage = msg =>
+                            {
+                                var fromRusi = msg?.RequestUri?.PathAndQuery?.StartsWith("/rusi.proto.runtime") ?? false;
+                                return !fromRusi;
+                            };
+                        })
+                        .AddOtlpExporter());
+
+                services.Configure<OtlpExporterOptions>(configuration.GetSection("OpenTelemetry:Otlp"));
+            }
+ 
+        }
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

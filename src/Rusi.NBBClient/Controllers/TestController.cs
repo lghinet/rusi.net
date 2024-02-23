@@ -27,20 +27,6 @@ namespace Rusi.NBBClient.Controllers
         public async Task<string[]> Get()
         {
             var cmd = new CreateOrder(1232, Summaries);
-
-
-            //using var scope = _tracer.BuildSpan("client publish operation")
-            //    .WithTag(OpenTracing.Tag.Tags.Component, "client publisher")
-            //    .WithTag(OpenTracing.Tag.Tags.SpanKind, OpenTracing.Tag.Tags.SpanKindProducer)
-            //    .StartActive(true);
-
-            //if (_tracer.ActiveSpan != null)
-            //{
-            //    _tracer.Inject(_tracer.ActiveSpan.Context, BuiltinFormats.TextMap,
-            //        new TextMapInjectAdapter(publishRequest.Metadata));
-            //}
-
-
             await _busPublisher.PublishAsync(cmd, HttpContext.RequestAborted);
 
             return Summaries;

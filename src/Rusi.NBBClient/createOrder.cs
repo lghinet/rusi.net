@@ -20,11 +20,12 @@ namespace Rusi.NBBClient
             _logger = logger;
         }
 
-        public async Task<Unit> Handle(CreateOrder request, CancellationToken cancellationToken)
+        public async Task Handle(CreateOrder request, CancellationToken cancellationToken)
         {
             await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
             _logger.LogInformation("new order request" + request.OrderId);
-            return Unit.Value;
+
+            throw new Exception("test exception");
         }
     }
 }
