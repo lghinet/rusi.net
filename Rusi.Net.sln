@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rusi.NetClientTests", "test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rusi.NBBClient", "src\Rusi.NBBClient\Rusi.NBBClient.csproj", "{084959F3-04C9-4FD3-A994-20751457E739}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rusi.Client", "src\Rusi.Client\Rusi.Client.csproj", "{597BEFA1-2C1D-47C9-97FE-FAC36D6F2946}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{084959F3-04C9-4FD3-A994-20751457E739}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{084959F3-04C9-4FD3-A994-20751457E739}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{084959F3-04C9-4FD3-A994-20751457E739}.Release|Any CPU.Build.0 = Release|Any CPU
+		{597BEFA1-2C1D-47C9-97FE-FAC36D6F2946}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{597BEFA1-2C1D-47C9-97FE-FAC36D6F2946}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{597BEFA1-2C1D-47C9-97FE-FAC36D6F2946}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{597BEFA1-2C1D-47C9-97FE-FAC36D6F2946}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +47,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C831EA48-77C9-4BEC-AFF7-CCE2E920B9F8} = {E081211F-A65B-4400-A9FD-6C274315DB99}
 		{084959F3-04C9-4FD3-A994-20751457E739} = {F3FABA7D-BE35-4134-B83C-28E10B04085E}
+		{597BEFA1-2C1D-47C9-97FE-FAC36D6F2946} = {F3FABA7D-BE35-4134-B83C-28E10B04085E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3D7B489F-8FED-4DC3-AF4B-661B6359D1E5}
