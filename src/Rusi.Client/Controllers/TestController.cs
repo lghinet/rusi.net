@@ -33,8 +33,8 @@ namespace WebApplication1.Controllers
             var publishRequest = new PublishRequest()
             {
                 Data = ByteString.CopyFromUtf8(JsonSerializer.Serialize(cmd)),
-                PubsubName = "natsstreaming-pubsub",
-                Topic = "TS1858.dapr_test_topic",
+                PubsubName = "jetstream-pubsub",
+                Topic = "commands.TS1858.dapr_test_topic",
                 Metadata = { { "test-2", "test-2" } }
             };
 

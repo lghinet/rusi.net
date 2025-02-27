@@ -1,4 +1,3 @@
-using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,14 +5,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-using System;
-using OpenTelemetry.Resources;
-using Proto.V1;
+using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Extensions.Propagators;
-using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Proto.V1;
+using System;
 using System.Reflection;
 
 namespace WebApplication1
@@ -67,7 +66,7 @@ namespace WebApplication1
                 });
             });
 
-            AddOpenTelemetry(services, Configuration);
+            //AddOpenTelemetry(services, Configuration);
         }
 
 
@@ -121,7 +120,7 @@ namespace WebApplication1
 
             app.UseAuthorization();
 
-            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            //app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

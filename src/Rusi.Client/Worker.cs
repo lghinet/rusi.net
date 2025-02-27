@@ -46,8 +46,8 @@ namespace WebApplication1
                         {
                             SubscriptionRequest = new SubscriptionRequest()
                             {
-                                PubsubName = "natsstreaming-pubsub",
-                                Topic = "TS1858.dapr_test_topic",
+                                PubsubName = "jetstream-pubsub",
+                                Topic = "commands.TS1858.dapr_test_topic",
                                 //Options = new SubscriptionOptions(){DeliverNewMessagesOnly = false}
                             }
                         });

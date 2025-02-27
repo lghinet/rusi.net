@@ -1,14 +1,5 @@
 ﻿<Project>
 	<PropertyGroup Label="Package Versions">
-		<NBB>8.0.2-alpha.0.7</NBB>
-
-
-		<!--OpenTelemetry dependencies-->
-		<Otel>1.7.0</Otel>
-		<OtelPrometheusAspNetCoreExporter>1.7.0-rc.1</OtelPrometheusAspNetCoreExporter>
-		<OtelInstrumentation>1.7.1</OtelInstrumentation>
-		<OtelContribSqlClient>1.7.0-beta.1</OtelContribSqlClient>
-		<OtelContribRuntime>1.7.0</OtelContribRuntime>
-		<OtelContribEFCore>1.0.0-beta.10</OtelContribEFCore>
+		<NBB>9.0.2</NBB>
 	</PropertyGroup>
 </Project>
